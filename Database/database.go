@@ -1,36 +1,41 @@
+// set up ng pagcoconnect kay DB
 package database
 
 import (
+	"fmt"
 	"log"
-	"os"
+	"strconv"
 
-	"github.com/sixfwa/fiber-gorm/models"
-	"gorm.io/driver/sqlite"
+	"github.com/Ejil/studen_database/config"
+	"github.com/Ejil/studen_database/models"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 )
 
-type DbInstance struct {
-	Db *gorm.DB
-}
+// Declare the variable for database
+var DB *gorm.DB
 
-var Database DbInstance
-
-func ConnectDb() {
-	db, err := gorm.Open(sqlite.Open("api.db"), &gorm.Config{})
-
+// ConnectDB connect to db
+func ConnectDB() {
+	var err error
+	p := config.Config("DB_PORT")
+	port, err := strconv.ParseUint(p, 10, 32)
 	if err != nil {
-		log.Fatal("Failed to connect to the database! \n", err)
-		os.Exit(2)
+		log.Fatalf("Failed to parse DB_PORT: %v", err)
 	}
 
-	log.Println("Connected Successfully to Database")
-	db.Logger = logger.Default.LogMode(logger.Info)
-	log.Println("Running Migrations")
+	//Connection URL to connect to Postgres DB
+	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", config.Config("DB_HOST"), port, config.Config("DB_USER"), config.Config("DB_PASSWORD"), config.Config("DB_NAME"))
 
-	db.AutoMigrate(&models.User{}, &models.Product{}, &models.Order{})
-
-	Database = DbInstance{
-		Db: db,
+	//Connect to the DB and initialize the DB variable
+	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if err != nil {
+		panic("Failed to connect to database")
 	}
+
+	fmt.Print("Successfully connected to database")
+
+	//Migrate the database
+	DB.AutoMigrate(&models.SignUp{})
+	fmt.Println("Database Migrated")
 }
