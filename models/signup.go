@@ -1,5 +1,5 @@
 package models
-
+//data model
 type SignUp struct {
 	ID               uint   `gorm:"primary key;autoIncrement" json:"id"`
 	FullName         string `json:"full_name"`
