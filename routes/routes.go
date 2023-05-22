@@ -5,6 +5,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func Routes(r *fiber.App){
-	r.Post("/newuser",handler.SignUp)
+func Routes(r *fiber.App) {
+	r.Post("/newuser", handler.SignUp)
+	r.Put("/updateuser", handler.UpdateUser)
+	r.Delete("/deleteuser/:id", handler.DeleteUser)
+	r.Get("/getAllUser", handler.GetRegisteredUser)
 }
