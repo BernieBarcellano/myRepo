@@ -1,38 +1,98 @@
-// naghahandle ng mga data na iniinput ni user sa sign up text fields
 package handler
 
 import (
 	"fmt"
+	"net/http"
 
 	database "github.com/Ejil/studen_database/Database"
 	"github.com/Ejil/studen_database/models"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
 )
 
-// Create New User
-func SignUp(c *fiber.Ctx) error {
-	db := database.DB
-	newuser := new(models.SignUp)
-
-	//Store body in the SignUp, return error if failed
-	if err := c.BodyParser(newuser); err != nil {
-		fmt.Println("err:", err)
-		return c.Status(500).JSON(fiber.Map{"message": "Review your input"})
+func GenerateJWT(userID uint) (string, error) {
+	// Define the claims for the JWT
+	claims := jwt.MapClaims{
+		"user_id": userID,
+		// Add other desired claims...
 	}
 
-	fmt.Println(newuser)
+	// Create a new JWT token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	//Create the new user
-	if err := db.Create(&newuser).Error; err != nil {
-		return c.Status(500).JSON(fiber.Map{"status": "Error!", "message": "Could not create new user", "data": err})
+	// Generate the token string
+	jwtSecret := []byte("your_secret_key") // Replace with your secret key
+	tokenString, err := token.SignedString(jwtSecret)
+	if err != nil {
+		return "", err
 	}
 
-	//Return the created user
-	return c.Status(201).JSON(newuser)
-
+	return tokenString, nil
 }
 
-// Update the User Info
+func Login(context *fiber.Ctx) error {
+	db := database.DB
+	newUser := new(models.SignUp)
+
+	err := context.BodyParser(newUser)
+	if err != nil {
+		return context.Status(http.StatusUnprocessableEntity).JSON(&fiber.Map{
+			"message": "request failed",
+		})
+	}
+
+	// Perform authentication logic
+	// Example:
+	user := &models.SignUp{}
+	err = db.Where("email = ? AND password = ?", newUser.Email_Address, newUser.Password).First(user).Error
+	if err != nil {
+		return context.Status(http.StatusUnauthorized).JSON(&fiber.Map{
+			"message": "success login",
+		})
+	}
+
+	// Assuming authentication is successful, generate a token
+	// Example:
+	token, err := GenerateJWT(user.ID)
+	if err != nil {
+		return context.Status(http.StatusInternalServerError).JSON(&fiber.Map{
+			"message": "failed to generate token",
+		})
+	}
+
+	return context.Status(http.StatusOK).JSON(&fiber.Map{
+		"message": "login successful",
+		"token":   token,
+	})
+}
+
+func SignUp(c *fiber.Ctx) error {
+	db := database.DB
+	newUser := new(models.SignUp)
+
+	// Store body in the newUser, return error if failed
+	if err := c.BodyParser(newUser); err != nil {
+		fmt.Println("err:", err)
+		return c.Status(http.StatusInternalServerError).JSON(&fiber.Map{
+			"message": "Done creating student",
+		})
+	}
+
+	fmt.Println(newUser)
+
+	// Create the new user
+	if err := db.Create(newUser).Error; err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(&fiber.Map{
+			"status":  "Error!",
+			"message": "Could not create new user",
+			"data":    err,
+		})
+	}
+
+	// Return the created user
+	return c.Status(http.StatusCreated).JSON(newUser)
+}
+
 func UpdateUser(c *fiber.Ctx) error {
 	var updateUser models.SignUp
 
@@ -53,7 +113,7 @@ func UpdateUser(c *fiber.Ctx) error {
 	}
 
 	// Return the updated user info
-	return c.JSON(fiber.Map{
+	return c.JSON(&fiber.Map{
 		"id":               updateUser.ID,
 		"full_name":        updateUser.FullName,
 		"student_number":   updateUser.Student_Number,
@@ -66,7 +126,6 @@ func UpdateUser(c *fiber.Ctx) error {
 	})
 }
 
-// Delete the user information
 func DeleteUser(c *fiber.Ctx) error {
 	var deleteUser models.SignUp
 
@@ -76,7 +135,7 @@ func DeleteUser(c *fiber.Ctx) error {
 	}
 
 	// Perform the delete operation in the database
-	result := database.DB.Model(&models.SignUp{}).Where("id = ?", deleteUser.ID).Delete(deleteUser)
+	result := database.DB.Model(&models.SignUp{}).Where("id = ?", deleteUser.ID).Delete(&deleteUser)
 	if result.Error != nil {
 		return result.Error
 	}
@@ -86,8 +145,8 @@ func DeleteUser(c *fiber.Ctx) error {
 		return fiber.ErrNotFound
 	}
 
-	// Return the deleteuser info
-	return c.JSON(fiber.Map{
+	// Return the deleteUser info
+	return c.JSON(&fiber.Map{
 		"id":               deleteUser.ID,
 		"full_name":        deleteUser.FullName,
 		"student_number":   deleteUser.Student_Number,
@@ -100,19 +159,24 @@ func DeleteUser(c *fiber.Ctx) error {
 	})
 }
 
-// Get all User
 func GetRegisteredUser(c *fiber.Ctx) error {
 	db := database.DB
-	var registeredusers []models.SignUp
+	var registeredUsers []models.SignUp
 
-	//find all users
-	db.Find(&registeredusers)
+	// Find all users
+	db.Find(&registeredUsers)
 
-	//if no user found
-	if len(registeredusers) == 0 {
-		return c.Status(404).JSON(fiber.Map{"status": "Error", "message": "No User Found", "data": nil})
+	// If no user found
+	if len(registeredUsers) == 0 {
+		return c.Status(http.StatusNotFound).JSON(&fiber.Map{
+			"status":  "Error",
+			"message": "No User Found",
+			"data":    nil,
+		})
 	}
 
-	//Else return the user list
-	return c.JSON(fiber.Map{"data": registeredusers})
+	// Else return the user list
+	return c.JSON(&fiber.Map{
+		"data": registeredUsers,
+	})
 }

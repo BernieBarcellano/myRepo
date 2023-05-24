@@ -1,5 +1,11 @@
 package models
-//data model
+
+// data model
+type Login struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
 type SignUp struct {
 	ID               uint   `gorm:"primary key;autoIncrement" json:"id"`
 	FullName         string `json:"full_name"`
@@ -10,4 +16,3 @@ type SignUp struct {
 	Password         string `json:"password"`
 	Confirm_Password string `json:"confirm_password"`
 }
-
