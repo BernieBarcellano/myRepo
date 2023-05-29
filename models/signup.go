@@ -2,7 +2,7 @@ package models
 
 // data model
 type Login struct {
-	Email    string `json:"email"`
+	Email    string `json:"email_address"`
 	Password string `json:"password"`
 }
 
@@ -15,4 +15,12 @@ type SignUp struct {
 	Email_Address    string `json:"email_address"`
 	Password         string `json:"password"`
 	Confirm_Password string `json:"confirm_password"`
+}
+type StudentDashboar struct {
+	FullName       string `json:"full_name"`
+	Student_Number int    `json:"student_number"`
+	Course         string `json:"course"`
+	Year           string `json:"year"`
+	Contact_Number string `json:"contact_number"`
+	Email          string `json:"email"`
 }

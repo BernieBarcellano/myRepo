@@ -6,7 +6,7 @@ import (
 )
 
 func Routes(r *fiber.App) {
-	r.Post("/newuser", handler.SignUp)
+	r.Post("/newuser", handler.SignUp)	
 	r.Put("/updateuser", handler.UpdateUser)//update student
 	r.Delete("/deleteuser/:id", handler.DeleteUser)//delete data student
 	r.Get("/getAllUser", handler.GetRegisteredUser)//show list of student
