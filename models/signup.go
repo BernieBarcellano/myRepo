@@ -24,7 +24,7 @@ type StudentDashboar struct {
 	Contact_Number string `json:"contact_number"`
 	Email          string `json:"email"`
 }
-type StudentAttendance struct {
+type Attendance struct {
 	ID           uint   `json:"id"`
 	Full_Name    string `json:"full_name"`
 	Subject      string `json:"subject"`

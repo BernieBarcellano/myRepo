@@ -180,3 +180,33 @@ func GetRegisteredUser(c *fiber.Ctx) error {
 		"data": registeredUsers,
 	})
 }
+func AttendanceUser(c *fiber.Ctx) error {
+	var AttendanceUser models.Attendance
+
+	// Parse the request body and bind it to the AttendanceUser struct
+	if err := c.BodyParser(&AttendanceUser); err != nil {
+		return err
+	}
+
+	// Perform the attendance operation in the database
+	result := database.DB.Model(&models.SignUp{}).Where("id = ?", AttendanceUser.ID).Updates(&AttendanceUser)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	// Check if any rows were affected by the attendance operation
+	if result.RowsAffected == 0 {
+		return fiber.ErrNotFound
+	}
+
+	// To show AttendanceUser info
+	return c.JSON(&fiber.Map{
+		"id":           AttendanceUser.ID,
+		"full_name":    AttendanceUser.Full_Name,
+		"subject":      AttendanceUser.Subject,
+		"block_no":     AttendanceUser.Block_No,
+		"today_date":   AttendanceUser.Today_Date,
+		"current_time": AttendanceUser.Current_Time,
+		"message":      "attendance successfull",
+	})
+}

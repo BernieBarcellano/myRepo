@@ -1,10 +1,9 @@
-package main
+package handler
 
 import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
-	"time"
 )
 
 type StudentAttendance struct {
@@ -20,7 +19,6 @@ type StudentAttendance struct {
 func generateAttendanceCode() string {
 	const codeLength = 6
 	const codeCharset = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	rand.Seed(time.Now().UnixNano())
 
 	code := make([]byte, codeLength)
 	for i := range code {
@@ -33,9 +31,9 @@ func generateAttendanceCode() string {
 func main() {
 	attendance := StudentAttendance{
 		ID:          1,
-		FullName:    "John Doe",
-		Subject:     "Mathematics",
-		BlockNo:     "B-12",
+		FullName:    "Juan Dela Cruz",
+		Subject:     "Progamming ",
+		BlockNo:     "Block 1",
 		TodayDate:   "2023-06-05",
 		CurrentTime: "09:30 AM",
 		Code:        generateAttendanceCode(),
